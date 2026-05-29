@@ -39,7 +39,8 @@ export async function fetchSetlist(url: string): Promise<Setlist> {
   const apiKey = import.meta.env.VITE_SETLIST_FM_API_KEY;
   if (!apiKey) throw new Error('VITE_SETLIST_FM_API_KEY is not set in your .env.local file.');
 
-  const response = await fetch(`/setlist-api/rest/1.0/setlist/${id}`, {
+  const target = `https://api.setlist.fm/rest/1.0/setlist/${id}`;
+  const response = await fetch(`https://corsproxy.io/?url=${encodeURIComponent(target)}`, {
     headers: {
       Accept: 'application/json',
       'x-api-key': apiKey,
