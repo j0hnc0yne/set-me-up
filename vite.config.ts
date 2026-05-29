@@ -8,4 +8,13 @@ export default defineConfig({
     react(),
     babel({ presets: [reactCompilerPreset()] })
   ],
+  server: {
+    proxy: {
+      '/setlist-api': {
+        target: 'https://api.setlist.fm',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/setlist-api/, ''),
+      },
+    },
+  },
 })

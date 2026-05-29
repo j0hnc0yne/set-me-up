@@ -1,0 +1,93 @@
+{
+   "id" : "b4afdea",
+   "versionId" : "g2317b0a3",
+   "eventDate" : "04-03-2026",
+   "lastUpdated" : "2026-03-05T07:14:57.188+0000",
+   "artist" : {
+      "mbid" : "bf600e2b-dc2d-4839-a1be-6ebef4087cd0",
+      "name" : "311",
+      "sortName" : "311",
+      "disambiguation" : "",
+      "url" : "https://www.setlist.fm/setlists/311-3d689c7.html"
+   },
+   "venue" : {
+      "id" : "53d59739",
+      "name" : "The Majestic Ventura Theater",
+      "city" : {
+         "id" : "5405878",
+         "name" : "Ventura",
+         "state" : "California",
+         "stateCode" : "CA",
+         "coords" : {
+            "lat" : 34.2783352,
+            "long" : -119.2931676
+         },
+         "country" : {
+            "code" : "US",
+            "name" : "United States"
+         }
+      },
+      "url" : "https://www.setlist.fm/venue/the-majestic-ventura-theater-ventura-ca-usa-53d59739.html"
+   },
+   "tour" : {
+      "name" : "Road to 311 Day 2026"
+   },
+   "sets" : {
+      "set" : [ {
+         "song" : [ {
+            "name" : "Beautiful Disaster"
+         }, {
+            "name" : "Freeze Time"
+         }, {
+            "name" : "Come Original"
+         }, {
+            "name" : "Large in the Margin"
+         }, {
+            "name" : "Champagne"
+         }, {
+            "name" : "DLMD"
+         }, {
+            "name" : "Don't Stay Home"
+         }, {
+            "name" : "You're Gonna Get It"
+         }, {
+            "name" : "Bass Solo"
+         }, {
+            "name" : "What Was I Thinking"
+         }, {
+            "name" : "Lovesong",
+            "cover" : {
+               "mbid" : "69ee3720-a7cb-4402-b48d-a02c366f2bcf",
+               "name" : "The Cure",
+               "sortName" : "Cure, The",
+               "disambiguation" : "",
+               "url" : "https://www.setlist.fm/setlists/the-cure-6bd6b266.html"
+            }
+         }, {
+            "name" : "Lucky"
+         }, {
+            "name" : "All Mixed Up"
+         }, {
+            "name" : "Applied Science"
+         }, {
+            "name" : "Stealing Happy Hours"
+         }, {
+            "name" : "Visit"
+         }, {
+            "name" : "Loco"
+         }, {
+            "name" : "Amber"
+         }, {
+            "name" : "Creatures (for a While)"
+         } ]
+      }, {
+         "encore" : 1,
+         "song" : [ {
+            "name" : "Omaha Stylee"
+         }, {
+            "name" : "Down"
+         } ]
+      } ]
+   },
+   "url" : "https://www.setlist.fm/setlist/311/2026/the-majestic-ventura-theater-ventura-ca-b4afdea.html"
+}

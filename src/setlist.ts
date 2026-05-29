@@ -1,108 +1,77 @@
 import type { Setlist, SetlistTrack } from './types';
 
-const CORS_PROXY = 'https://api.allorigins.win/get?url=';
-
-function slugToName(slug: string): string {
-  return slug
-    .split('-')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-}
-
-function extractArtistFromUrl(url: string): string {
-  const match = url.match(/setlist\.fm\/setlist\/([^/]+)\//);
-  return match ? slugToName(match[1]) : 'Unknown Artist';
-}
-
-function extractYearFromUrl(url: string): string {
-  const match = url.match(/setlist\.fm\/setlist\/[^/]+\/(\d{4})\//);
-  return match ? match[1] : '';
-}
-
-interface JsonLdEvent {
-  '@type'?: string;
-  startDate?: string;
-  performer?: { name?: string } | Array<{ name?: string }>;
-}
-
-function parseJsonLd(doc: Document): { artist?: string; date?: string } {
-  const scripts = Array.from(doc.querySelectorAll('script[type="application/ld+json"]'));
-  for (const script of scripts) {
-    try {
-      const parsed = JSON.parse(script.textContent ?? '') as JsonLdEvent | JsonLdEvent[];
-      const events = Array.isArray(parsed) ? parsed : [parsed];
-      for (const event of events) {
-        if (event['@type'] === 'MusicEvent' || event['@type'] === 'Event') {
-          const date = typeof event.startDate === 'string'
-            ? event.startDate.substring(0, 10)
-            : undefined;
-
-          let artist: string | undefined;
-          if (event.performer) {
-            const performer = Array.isArray(event.performer)
-              ? event.performer[0]
-              : event.performer;
-            if (typeof performer?.name === 'string') artist = performer.name;
-          }
-
-          if (date || artist) return { artist, date };
-        }
-      }
-    } catch {
-      // ignore malformed JSON-LD blocks
-    }
+function extractSetlistId(url: string): string {
+  const match = url.match(/([a-f0-9]+)\.html$/i);
+  if (!match) {
+    throw new Error('Could not find a setlist ID in that URL. Make sure it\'s a direct setlist link from setlist.fm.');
   }
-  return {};
+  return match[1];
 }
 
-function parseTracks(doc: Document): SetlistTrack[] {
-  const songEls = Array.from(doc.querySelectorAll('li.setlistParts.song'));
-  const tracks: SetlistTrack[] = [];
+function convertDate(ddMMYYYY: string): string {
+  const [dd, mm, yyyy] = ddMMYYYY.split('-');
+  return `${yyyy}-${mm}-${dd}`;
+}
 
-  for (const li of songEls) {
-    const songLabel = li.querySelector('a.songLabel');
-    if (!songLabel) continue;
+interface ApiArtist {
+  name: string;
+}
 
-    const name = songLabel.textContent?.trim();
-    if (!name) continue;
+interface ApiSong {
+  name: string;
+  tape?: boolean;
+  cover?: ApiArtist;
+}
 
-    const liText = li.textContent ?? '';
-    const coverMatch = liText.match(/\(([^)]+?)\s+cover\)/i);
+interface ApiSet {
+  song?: ApiSong[];
+}
 
-    if (coverMatch) {
-      tracks.push({
-        name,
-        isCover: true,
-        coverOriginalArtist: coverMatch[1].trim(),
-      });
-    } else {
-      tracks.push({ name, isCover: false });
-    }
+interface ApiSetlist {
+  artist: ApiArtist;
+  eventDate: string; // dd-MM-yyyy
+  sets: { set: ApiSet[] };
+}
+
+export async function fetchSetlist(url: string): Promise<Setlist> {
+  const id = extractSetlistId(url);
+
+  const apiKey = import.meta.env.VITE_SETLIST_FM_API_KEY;
+  if (!apiKey) throw new Error('VITE_SETLIST_FM_API_KEY is not set in your .env.local file.');
+
+  const response = await fetch(`/setlist-api/rest/1.0/setlist/${id}`, {
+    headers: {
+      Accept: 'application/json',
+      'x-api-key': apiKey,
+    },
+  });
+
+  if (response.status === 401) {
+    throw new Error('Invalid setlist.fm API key — check VITE_SETLIST_FM_API_KEY in .env.local.');
+  }
+  if (response.status === 404) {
+    throw new Error('Setlist not found. Double-check the URL.');
+  }
+  if (!response.ok) {
+    throw new Error(`setlist.fm API error (${response.status})`);
   }
 
-  return tracks;
-}
+  const data = await response.json() as ApiSetlist;
 
-export async function scrapeSetlist(url: string): Promise<Setlist> {
-  const proxyUrl = `${CORS_PROXY}${encodeURIComponent(url)}`;
-  const response = await fetch(proxyUrl);
-  if (!response.ok) throw new Error('Failed to fetch the setlist page. Check your URL and try again.');
+  const artist = data.artist.name;
+  const date = convertDate(data.eventDate);
 
-  const data = await response.json() as { contents: string };
-  const html = data.contents;
-
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(html, 'text/html');
-
-  const { artist: jsonArtist, date: jsonDate } = parseJsonLd(doc);
-
-  const artist = jsonArtist ?? extractArtistFromUrl(url);
-  const date = jsonDate ?? extractYearFromUrl(url);
-
-  const tracks = parseTracks(doc);
+  const tracks: SetlistTrack[] = data.sets.set
+    .flatMap((s) => s.song ?? [])
+    .filter((song) => !song.tape)
+    .map((song): SetlistTrack => ({
+      name: song.name,
+      isCover: Boolean(song.cover),
+      coverOriginalArtist: song.cover?.name,
+    }));
 
   if (tracks.length === 0) {
-    throw new Error('No tracks found in that setlist. Please check the URL and try again.');
+    throw new Error('This setlist has no songs yet — it may not have been filled in.');
   }
 
   return { artist, date, tracks };

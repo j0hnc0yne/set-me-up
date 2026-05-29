@@ -9,7 +9,7 @@ import {
   createPlaylist,
   addTracksToPlaylist,
 } from './spotify';
-import { scrapeSetlist } from './setlist';
+import { fetchSetlist } from './setlist';
 import './App.css';
 
 type AppState = 'landing' | 'authenticated' | 'loading' | 'done' | 'error';
@@ -49,7 +49,7 @@ export default function App() {
     setAppState('loading');
 
     try {
-      const setlist = await scrapeSetlist(setlistUrl);
+      const setlist = await fetchSetlist(setlistUrl);
       const playlistName = `${setlist.artist} set from ${setlist.date}`;
       const playlistId = await createPlaylist(playlistName);
 
