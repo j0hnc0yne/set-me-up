@@ -105,7 +105,7 @@ export default function App() {
   if (appState === 'loading') {
     return (
       <div className="app loading">
-        <img src="/record.jpeg" alt="Loading" className="record-spin" />
+        <img src="record.jpeg" alt="Loading" className="record-spin" />
         <p className="loading-msg">{loadingMessage}</p>
       </div>
     );
